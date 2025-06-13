@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Assistant Chat</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        /* Base styles for body and overall layout */
+        body {
+            font-family: "Inter", sans-serif;
+            background: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styling */
+        #sidebar {
+            width: 200px;
+            background: #007BFF;
+            color: white;
+            padding: 20px;
+            position: fixed; /* Fixed sidebar */
+            height: 100%; /* Full height */
+            display: flex;
+            flex-direction: column;
+            gap: 15px; /* Space between buttons */
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            border-radius: 10px; /* Rounded corners for the sidebar */
+        }
+
+        #sidebar h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        #sidebar button {
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            padding: 10px;
+            background: #0056b3; /* Darker blue for buttons */
+            border: none;
+            border-radius: 5px; /* Rounded corners for buttons */
+            transition: background 0.3s ease; /* Smooth hover effect */
+            text-align: left; /* Align text to the left within buttons */
+        }
+
+        #sidebar button:hover {
+            background: #004085; /* Even darker blue on hover */
+        }
+
+        /* Chat Container Styling */
+        #chat-container {
+            margin-left: 220px; /* Offset for the fixed sidebar */
+            flex-grow: 1; /* Allows it to take remaining space */
+            display: flex;
+            justify-content: center; /* Center chat box horizontally */
+            align-items: flex-start; /* Align chat box to the top */
+            padding-bottom: 20px; /* Padding at the bottom */
+            width: calc(100% - 220px); /* Adjust width to account for sidebar */
+        }
+
+        #chat-box {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 700px; /* Max width for the chat box */
+            width: 100%; /* Ensure it takes full width up to max-width */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            min-height: 400px; /* Minimum height for the chat box */
+        }
+
+        #chat-box h2 {
+            text-align: center;
+            color: #007BFF;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+
+        #messages {
+            flex-grow: 1; /* Allows messages to take available vertical space */
+            overflow-y: auto; /* Enable scrolling for messages */
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            background: #f9f9f9;
+        }
+
+        .message {
+            margin: 8px 0;
+            padding: 5px;
+            border-radius: 5px;
+            line-height: 1.4; /* Improve readability */
+        }
+
+        .message strong {
+            color: #007BFF;
+        }
+
+        /* Input Area Styling */
+        .input-area {
+            display: flex;
+            align-items: center;
+            gap: 10px; /* Space between input and button */
+        }
+
+        #user-input {
+            flex-grow: 1; /* Allows input to take most of the space */
+            border: 1px solid #ddd;
+            border-radius: 20px; /* Pill shape */
+            padding: 12px 15px;
+            font-size: 16px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            outline: none; /* Remove default outline on focus */
+            transition: border-color 0.3s ease;
+        }
+
+        #user-input:focus {
+            border-color: #007BFF; /* Highlight border on focus */
+        }
+
+        #send-btn {
+            background: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 20px; /* Pill shape */
+            cursor: pointer;
+            width: 70px;
+            padding: 12px; /* Consistent padding */
+            font-size: 16px;
+            transition: background 0.3s ease;
+            flex-shrink: 0; /* Prevent button from shrinking */
+        }
+
+        #send-btn:hover {
+            background: #0056b3;
+        }
+
+        /* Game specific styles */
+        #game-container {
+            display: none; /* Hidden by default */
+            width: 250px;
+            height: 350px;
+            background: linear-gradient(to bottom, #87CEEB, #F0F8FF); /* Sky gradient */
+            position: relative; /* For score positioning */
+            margin-top: 20px;
+            border-radius: 10px;
+            overflow: hidden; /* Hide anything outside canvas */
+            border: 2px solid #333;
+            margin-left: auto; /* Center within sidebar */
+            margin-right: auto; /* Center within sidebar */
+        }
+        canvas {
+            display: block; /* Remove extra space below canvas */
+            background: transparent; /* Allows gradient background to show */
+            width: 100%; /* Ensure canvas fills its container */
+            height: 100%;
+        }
+        #game-score {
+            position: absolute;
+            top: 10px;
+            left: 50%; /* Center horizontally */
+            transform: translateX(-50%); /* Adjust for its own width */
+            color: black;
+            font-weight: bold;
+            font-size: 1.2em;
+            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.7);
+            z-index: 10; /* Ensure score is above game elements */
+        }
+
+        /* Custom Message Box Styles (for alerts/confirmations) */
+        .message-box-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000; /* Ensure it's on top of everything */
+        }
+        .message-box-content {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 400px;
+            width: 90%; /* Responsive width */
+        }
+        .message-box-content p {
+            margin-bottom: 20px;
+            font-size: 1.1em;
+            white-space: pre-wrap; /* Preserve whitespace and line breaks for history */
+        }
+        .message-box-content button {
+            background: #007BFF;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: background 0.3s ease;
+        }
+        .message-box-content button:hover {
+            background: #0056b3;
+        }
+
+        /* Basic Media Query for Responsiveness */
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column; /* Stack sidebar and chat vertically */
+                padding: 10px;
+            }
+            #sidebar {
+                position: static; /* No longer fixed */
+                width: 100%;
+                height: auto;
+                flex-direction: row; /* Buttons side-by-side in a row */
+                flex-wrap: wrap; /* Allow buttons to wrap */
+                justify-content: center;
+                gap: 10px;
+                padding: 15px;
+                margin-bottom: 20px;
+            }
+            #sidebar h3 {
+                width: 100%; /* Ensure heading takes full width */
+                text-align: center;
+                margin-bottom: 10px;
+            }
+            #sidebar button {
+                flex-grow: 1; /* Allow buttons to grow and fill space */
+                max-width: calc(50% - 5px); /* Two buttons per row (roughly) */
+                text-align: center;
+            }
+            #chat-container {
+                margin-left: 0; /* Remove sidebar offset */
+                width: 100%; /* Full width */
+                padding-bottom: 10px;
+            }
+            #chat-box {
+                min-height: 300px; /* Smaller min-height for mobile */
+            }
+            #game-container {
+                width: 100%; /* Game container takes full width on smaller screens */
+                max-width: 250px; /* Maintain aspect ratio */
+                height: auto; /* Adjust height automatically */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar">
+        <h3>📜 Menu</h3>
+        <button id="home-btn">🏠 Home</button>
+        <button id="history-btn">📜 Chat History</button>
+        <button id="download-sql-btn">⬇️ SQL CSV</button>
+        <button id="download-chat-btn">⬇️ Chat CSV</button>
+        
+        <div id="game-container">
+            <div id="game-score">Score: 0</div>
+            <canvas id="game-canvas"></canvas>
+        </div>
+    </div>
+
+    <main id="chat-container">
+        <div id="chat-box">
+            <h2>🧠 AI Assistant</h2>
+            <div id="messages"></div>
+            <div class="input-area">
+                <input type="text" id="user-input" placeholder="Type your message..." />
+                <button id="send-btn">Send</button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Helper function to display a custom message box
+        function showMessageBox(message) {
+            const overlay = document.createElement('div');
+            overlay.className = 'message-box-overlay';
+            overlay.innerHTML = `
+                <div class="message-box-content">
+                    <p>${message}</p>
+                    <button id="message-box-ok">OK</button>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+
+            document.getElementById('message-box-ok').onclick = () => {
+                document.body.removeChild(overlay);
+            };
+        }
+
+        // Ensure the script runs after the DOM is fully loaded
+        document.addEventListener("DOMContentLoaded", () => {
+            const sendBtn = document.getElementById("send-btn");
+            const userInput = document.getElementById("user-input");
+            const messagesDiv = document.getElementById("messages");
+            const downloadChatBtn = document.getElementById("download-chat-btn");
+            const downloadSqlBtn = document.getElementById("download-sql-btn");
+            const homeBtn = document.getElementById("home-btn");
+            const historyBtn = document.getElementById("history-btn");
+
+            // Base URL for your Python Flask backend
+            const API_BASE_URL = 'http://127.0.0.1:5000';
+
+            function saveToHistory(user, ai) {
+                const history = JSON.parse(localStorage.getItem("chatHistory") || "[]");
+                history.push({ user, ai });
+                localStorage.setItem("chatHistory", JSON.stringify(history));
+            }
+
+            function saveToSQLHistory(user, ai) {
+                const sqlHistory = JSON.parse(localStorage.getItem("sqlHistory") || "[]");
+                sqlHistory.push({ user, ai });
+                localStorage.setItem("sqlHistory", JSON.stringify(sqlHistory));
+            }
+
+            sendBtn.onclick = async () => {
+                const message = userInput.value.trim();
+                if (!message) return;
+
+                messagesDiv.innerHTML += `<div class="message"><strong>You:</strong> ${message}</div>`;
+                userInput.value = "";
+
+                let responseText = "AI: I'm thinking..."; // Initial placeholder
+                messagesDiv.innerHTML += `<div class="message" id="ai-thinking-message"><strong>AI:</strong> ${responseText}</div>`;
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+                try {
+                    // All user messages go to the /ask endpoint
+                    const response = await fetch(`${API_BASE_URL}/ask`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message: message })
+                    });
+
+                    const data = await response.json();
+                    const aiThinkingMessage = document.getElementById("ai-thinking-message");
+                    if (aiThinkingMessage) {
+                        aiThinkingMessage.remove(); // Remove the "thinking" message
+                    }
+
+                    if (response.ok) {
+                        responseText = data.response; // AI response itself
+                        messagesDiv.innerHTML += `<div class="message"><strong>AI:</strong> ${responseText}</div>`;
+                        saveToHistory(message, data.response); // Save all chat to general history
+
+                        // Enhanced check for SQL commands to save to SQL history
+                        // This regex checks for common SQL DDL, DML, and query keywords at the start of the string
+                        const sqlKeywords = /^(SELECT|INSERT INTO|UPDATE|DELETE FROM|CREATE (TABLE|DATABASE|INDEX)|ALTER (TABLE|VIEW)|DROP (TABLE|DATABASE|INDEX)|TRUNCATE TABLE|GRANT|REVOKE|COMMIT|ROLLBACK|SAVEPOINT|PRAGMA|EXPLAIN|ATTACH DATABASE|DETACH DATABASE)\b/i;
+
+                        if (sqlKeywords.test(message.toUpperCase())) {
+                            saveToSQLHistory(message, data.response);
+                        }
+
+                    } else {
+                        responseText = `Error from server: ${data.error || 'Unknown error'}`;
+                        messagesDiv.innerHTML += `<div class="message" style="color: red;"><strong>AI:</strong> ${responseText}</div>`;
+                    }
+
+                } catch (error) {
+                    console.error("Error communicating with backend:", error);
+                    const aiThinkingMessage = document.getElementById("ai-thinking-message");
+                    if (aiThinkingMessage) {
+                        aiThinkingMessage.remove();
+                    }
+                    responseText = "I'm having trouble connecting to my brain (the server). Please try again later.";
+                    messagesDiv.innerHTML += `<div class="message" style="color: red;"><strong>AI:</strong> ${responseText}</div>`;
+                }
+
+                messagesDiv.scrollTop = messagesDiv.scrollHeight; // Scroll to bottom after new message
+            };
+
+            // Allow sending message with Enter key
+            userInput.addEventListener("keypress", (e) => {
+                if (e.key === "Enter") {
+                    sendBtn.click();
+                }
+            });
+
+            function downloadCSV(filename, history, header) {
+                if (!history || history.length === 0) {
+                    showMessageBox(`No ${filename.replace('_history.csv', '').replace('_', ' ').replace('sql', 'SQL')} history to download.`);
+                    return;
+                }
+
+                let csv = header + "\n";
+                history.forEach(h => {
+                    // Escape double quotes by doubling them and enclose fields in quotes
+                    const userText = `"${(h.user || '').replace(/"/g, '""')}"`;
+                    const aiText = `"${(h.ai || '').replace(/"/g, '""')}"`;
+                    csv += `${userText},${aiText}\n`;
+                });
+
+                const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                // Clear history after download
+                if (filename === "chat_history.csv") {
+                    localStorage.removeItem("chatHistory");
+                    showMessageBox("Chat history downloaded and cleared!");
+                } else if (filename === "sql_history.csv") {
+                    localStorage.removeItem("sqlHistory");
+                    showMessageBox("SQL history downloaded and cleared!");
+                }
+            }
+
+            downloadChatBtn.onclick = () => {
+                const data = JSON.parse(localStorage.getItem("chatHistory") || "[]");
+                downloadCSV("chat_history.csv", data, "Message,Response");
+            };
+
+            downloadSqlBtn.onclick = () => {
+                const data = JSON.parse(localStorage.getItem("sqlHistory") || "[]");
+                downloadCSV("sql_history.csv", data, "SQL Command,Response");
+            };
+
+            homeBtn.onclick = () => location.reload(); // Reloads the page
+
+            historyBtn.onclick = () => {
+                const data = JSON.parse(localStorage.getItem("chatHistory") || "[]");
+                if (!data.length) {
+                    showMessageBox("No chat history.");
+                    return;
+                }
+                let historyText = "--- Chat History ---\n\n";
+                data.forEach((h, index) => {
+                    historyText += `Entry ${index + 1}:\n  You: ${h.user}\n  AI: ${h.ai}\n\n`;
+                });
+                showMessageBox(historyText);
+            };
+
+            // --- Dodger Game Logic (unchanged as it was fully functional) ---
+            const gameBtn = document.getElementById("game-btn");
+            const gameContainer = document.getElementById("game-container");
+            const gameCanvas = document.getElementById("game-canvas");
+            const ctx = gameCanvas.getContext("2d");
+            const gameScoreDisplay = document.getElementById("game-score");
+
+            gameCanvas.width = 250;
+            gameCanvas.height = 350;
+
+            let playerX;
+            const playerSize = 25;
+            const playerSpeed = 4;
+
+            let obstacles = [];
+            const obstacleSize = 30;
+            let obstacleSpeed = 2;
+            let obstacleSpawnInterval = 1000;
+            let lastObstacleSpawnTime = 0;
+
+            let score = 0;
+            let isPlaying = false;
+            let animationFrameId;
+
+            let keys = {
+                ArrowLeft: false,
+                ArrowRight: false
+            };
+
+            document.addEventListener("keydown", (e) => {
+                if (e.key === "ArrowLeft") keys.ArrowLeft = true;
+                if (e.key === "ArrowRight") keys.ArrowRight = true;
+            });
+
+            document.addEventListener("keyup", (e) => {
+                if (e.key === "ArrowLeft") keys.ArrowLeft = false;
+                if (e.key === "ArrowRight") keys.ArrowRight = false;
+            });
+
+            function resetGame() {
+                playerX = gameCanvas.width / 2 - playerSize / 2;
+                obstacles = [];
+                score = 0;
+                obstacleSpeed = 2;
+                obstacleSpawnInterval = 1000;
+                gameScoreDisplay.textContent = `Score: ${score}`;
+                lastObstacleSpawnTime = Date.now();
+            }
+
+            function drawPlayer() {
+                ctx.fillStyle = "#FF4500"; // Red-orange player
+                ctx.fillRect(playerX, gameCanvas.height - playerSize - 10, playerSize, playerSize);
+            }
+
+            function drawObstacles() {
+                ctx.fillStyle = "#808080"; // Grey obstacles
+                obstacles.forEach(obstacle => {
+                    ctx.fillRect(obstacle.x, obstacle.y, obstacleSize, obstacleSize);
+                });
+            }
+
+            function updateGame() {
+                // Player movement
+                if (keys.ArrowLeft) {
+                    playerX -= playerSpeed;
+                }
+                if (keys.ArrowRight) {
+                    playerX += playerSpeed;
+                }
+                // Keep player within bounds
+                if (playerX < 0) playerX = 0;
+                if (playerX > gameCanvas.width - playerSize) playerX = gameCanvas.width - playerSize;
+
+                // Update obstacle positions and check for collisions/scoring
+                for (let i = obstacles.length - 1; i >= 0; i--) {
+                    let obstacle = obstacles[i];
+                    obstacle.y += obstacleSpeed;
+
+                    // Collision detection
+                    if (
+                        playerX < obstacle.x + obstacleSize &&
+                        playerX + playerSize > obstacle.x &&
+                        (gameCanvas.height - playerSize - 10) < obstacle.y + obstacleSize &&
+                        (gameCanvas.height - playerSize - 10) + playerSize > obstacle.y
+                    ) {
+                        isPlaying = false;
+                        cancelAnimationFrame(animationFrameId);
+                        showMessageBox(`Game Over! You hit a grey square. Final score: ${score}`);
+                        gameContainer.style.display = "none"; // Hide game on game over
+                        resetGame(); // Reset for next play
+                        return; // Stop the update loop
+                    }
+
+                    // Remove off-screen obstacles and update score
+                    if (obstacle.y > gameCanvas.height) {
+                        obstacles.splice(i, 1);
+                        score++;
+                    }
+                }
+
+                // Obstacle spawning
+                const currentTime = Date.now();
+                if (currentTime - lastObstacleSpawnTime > obstacleSpawnInterval) {
+                    const randomX = Math.random() * (gameCanvas.width - obstacleSize);
+                    obstacles.push({ x: randomX, y: -obstacleSize });
+                    lastObstacleSpawnTime = currentTime;
+
+                    // Increase difficulty over time
+                    if (obstacleSpawnInterval > 300) obstacleSpawnInterval -= 2;
+                    if (obstacleSpeed < 6) obstacleSpeed += 0.005;
+                }
+
+                gameScoreDisplay.textContent = `Score: ${score}`;
+            }
+
+            function gameLoop() {
+                if (!isPlaying) return; // Stop if game is not playing
+
+                ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height); // Clear canvas
+
+                updateGame();
+                drawObstacles();
+                drawPlayer();
+
+                animationFrameId = requestAnimationFrame(gameLoop); // Loop recursively
+            }
+
+            gameBtn.onclick = () => {
+                if (!isPlaying) {
+                    gameContainer.style.display = "block"; // Show game
+                    resetGame(); // Start fresh
+                    isPlaying = true;
+                    gameLoop(); // Start game loop
+                } else {
+                    cancelAnimationFrame(animationFrameId); // Stop game loop
+                    isPlaying = false;
+                    gameContainer.style.display = "none"; // Hide game
+                    showMessageBox("Game paused. Click Play Game to resume or restart.");
+                }
+            };
+        }); // End of DOMContentLoaded
+    </script>
+</body>
+</html>
