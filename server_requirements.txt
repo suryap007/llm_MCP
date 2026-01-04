@@ -2,4 +2,4 @@ mcp==1.9.2
 yfinance
 pandas
 uvicorn
-fastapi
+fastmcp
