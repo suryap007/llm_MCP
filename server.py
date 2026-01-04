@@ -1,6 +1,7 @@
 import sqlite3 as sq
 import argparse
-from mcp.server.fastmcp import FastMCP
+from fastmcp import FastMCP
+# from mcp.server.fastmcp import FastMCP
 import yfinance as yf
 import pandas as pd
 from datetime import datetime as t
@@ -166,17 +167,8 @@ def get_stock_news(name: str) -> list[dict[str, str]]:
 
     return result
 
+app = mcp.http_app()
 
 if __name__ == "__main__":
-    # Start the server
-    print("Starting server... ")
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--server_type", type=str, default="sse", choices=["sse", "stdio"]
-    )
-
-    args = parser.parse_args()
-    mcp.run(args.server_type)
-
+    mcp.run()
 
