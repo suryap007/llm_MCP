@@ -3,3 +3,4 @@ yfinance
 pandas
 uvicorn
 fastmcp
+pydantic<2.12.0
