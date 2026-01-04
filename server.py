@@ -4,6 +4,7 @@ from mcp.server.fastmcp import FastMCP
 import yfinance as yf
 import pandas as pd
 from datetime import datetime as t
+import os 
 
 mcp = FastMCP('mcp-server')
 
@@ -177,6 +178,5 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     mcp.run(args.server_type)
-
 
 
