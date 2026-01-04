@@ -168,15 +168,21 @@ def get_stock_news(name: str) -> list[dict[str, str]]:
 
 
 if __name__ == "__main__":
-    # Start the server
-    print("Starting server... ")
+    print("Starting server...")
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--server_type", type=str, default="sse", choices=["sse", "stdio"]
     )
-
     args = parser.parse_args()
-    mcp.run(args.server_type)
 
+    PORT = int(os.environ.get("PORT", 8000))
 
+    if args.server_type == "sse":
+        mcp.run(
+            "sse",
+            host="0.0.0.0",
+            port=PORT,
+        )
+    else:
+        mcp.run("stdio")
