@@ -1,5 +1,5 @@
 mcp==1.9.2
-fastapi-mcp
 yfinance
 pandas
 uvicorn
+fastapi
