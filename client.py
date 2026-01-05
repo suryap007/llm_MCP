@@ -15,9 +15,9 @@ app = Flask(__name__)
 CORS(app) # Enable CORS for public access
 
 # Environment variables (to be set in your Render dashboard)
-OPENROUTER_API_KEY = "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"
+OPENROUTER_API_KEY = "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"
 # The public URL of your server.py instance (e.g., https://your-tools-server.onrender.com/sse)
-MCP_SERVER_URL = "http://127.0.0.1:8000/sse"
+MCP_SERVER_URL = "https://llm-mcp-yrk1.onrender.com/sse"
 
 SYSTEM_PROMPT = """\
 You are an AI assistant for Tool Calling.

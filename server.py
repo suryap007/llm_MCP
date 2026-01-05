@@ -170,5 +170,5 @@ def get_stock_news(name: str) -> list[dict[str, str]]:
 app = mcp.http_app()
 
 if __name__ == "__main__":
-    mcp.run()
+    mcp.run(transport="sse")
 
