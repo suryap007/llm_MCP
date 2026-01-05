@@ -1,0 +1,6 @@
+flask
+flask-cors
+llama-index-llms-openrouter
+llama-index-core
+llama-index-tools-mcp
+nest-asyncio
